@@ -3,7 +3,7 @@ PageMenuController
 
 日本のニュース系アプリで使われている横スクロールのメニュー画面でコンテンツを表示するユーザインタフェースのクラスを実装。Xcode のプロジェクト一式を登録してあるので、実行すればシミュレータ上で動作を確認可能。
 
-提供するのはユーザインタフェースだけ。実装もとてもシンプル。なので、必要に応じて自分で改良してね。
+横スクロールするメニューは UIScrollView を利用。コンテンツ表示部は UIPageViewController を使って画面を切り替えている。とてもシンプルな実装なので、必要に応じて自分で改良してね。
 
 Screenshot
 ============
@@ -39,7 +39,7 @@ NSMutableArray * controllers = [NSMutableArray new];
 
 // 以下のような感じで必要な UIViewController を追加する
 UIViewController * vc = [UIViewController new];
-vc.title = month;
+vc.title = @"CONTENT TITLE";
 [controllers addObject:vc];
 
 // ステータスバーの高さを求める
@@ -55,7 +55,8 @@ pageMenuController = [[PMKPageMenuController alloc]
                        menuStyle:menuStyle
                        topBarHeight:statusBarHeight];
 
-// PageMenuController をベース ViewController の ChildViewController とする
+// PageMenuController を親となる ViewController の ChildViewController とする
+// 以下は PMKPageMenuController を利用するときには必須のコード
 [self addChildViewController:pageMenuController];
 [self.view addSubview:pageMenuController.view];
 [pageMenuController didMoveToParentViewController:self];
