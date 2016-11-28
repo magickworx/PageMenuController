@@ -8,16 +8,22 @@ PageMenuController
 Screenshot
 ============
 
+**NewsPass っぽい画面**
+
 ![Plain モード](screenshot_plain.png "NewsPass っぽい画面")
 
-![Tab モード](screenshot_tap.png "Gnunosy っぽい画面")
+**Gnunosy っぽい画面**
+
+![Tab モード](screenshot_tab.png "Gnunosy っぽい画面")
+
+**SmartNews っぽい画面**
 
 ![Smart モード](screenshot_smart.png "SmartNews っぽい画面")
 
 How to use PageMenuController
 ============
 
-**1) Classes フォルダの PSKPageMenuController.h と PSKPageMenuController.m ファイルを Xcode のプロジェクトにコピーする。**
+**1) PageMenuController フォルダの PSKPageMenuController.h と PSKPageMenuController.m ファイルを Xcode のプロジェクトにコピーする。**
 
 **2) ベースとする View Controller に property を記述する。**
 
@@ -55,6 +61,7 @@ pageMenuController = [[PMKPageMenuController alloc]
 [pageMenuController didMoveToParentViewController:self];
 self.pageMenuController = pageMenuController;
 ```
+より詳細なコードは RootViewController.m 内の loadView を見てね。
 
 Requirements
 ============
