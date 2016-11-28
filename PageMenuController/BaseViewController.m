@@ -1,12 +1,12 @@
 /*****************************************************************************
  *
- * FILE:	AppDelegate.h
- * DESCRIPTION:	PageMenuControllerDemo: Application Main Controller
+ * FILE:	BaseViewController.m
+ * DESCRIPTION:	PageMenuControllerDemo: Base View Controller
  * DATE:	Tue, Nov 22 2016
  * UPDATED:	Tue, Nov 22 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
- * URL:		http://www.MagickWorX.COM/
+ * URL:		http://www.iPhone.MagickWorX.COM/
  * COPYRIGHT:	(c) 2016 阿部康一／Kouichi ABE (WALL), All rights reserved.
  * LICENSE:
  *
@@ -36,13 +36,48 @@
  *   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  *   THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AppDelegate.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
+ * $Id: BaseViewController.m,v 1.1 2016/01/28 12:40:36 kouichi Exp $
  *
  *****************************************************************************/
 
-@import Foundation;
-@import UIKit;
+#import "BaseViewController.h"
 
-@interface AppDelegate : UIResponder
-@property (nonatomic,strong) UIWindow *	window;
+@implementation BaseViewController
+
+-(void)didReceiveMemoryWarning
+{
+  /*
+   * Invoke super's implementation to do the Right Thing,
+   * but also release the input controller since we can do that.
+   * In practice this is unlikely to be used in this application,
+   * and it would be of little benefit,
+   * but the principle is the important thing.
+   */
+  [super didReceiveMemoryWarning];
+}
+
+-(void)loadView
+{
+  [super loadView];
+
+  self.edgesForExtendedLayout = UIRectEdgeNone;
+  self.extendedLayoutIncludesOpaqueBars = YES;
+  self.automaticallyAdjustsScrollViewInsets = NO;
+
+  self.view.backgroundColor	= [UIColor whiteColor];
+  self.view.autoresizingMask	= UIViewAutoresizingFlexibleWidth
+				| UIViewAutoresizingFlexibleHeight;
+
+  CGRect  frame = self.view.frame;
+  CGFloat statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+  frame.origin.y    += statusBarHeight;
+  frame.size.height -= statusBarHeight;
+
+  CGFloat navBarHeight = self.navigationController.navigationBar.bounds.size.height;
+  frame.origin.y    += navBarHeight;
+  frame.size.height -= navBarHeight;
+
+  self.view.frame = frame;
+}
+
 @end

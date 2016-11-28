@@ -1,9 +1,9 @@
 /*****************************************************************************
  *
- * FILE:	AppDelegate.h
- * DESCRIPTION:	PageMenuControllerDemo: Application Main Controller
- * DATE:	Tue, Nov 22 2016
- * UPDATED:	Tue, Nov 22 2016
+ * FILE:	DataViewController.m
+ * DESCRIPTION:	PageMenuControllerDemo: Demo Data View Controller
+ * DATE:	Wed, Nov 23 2016
+ * UPDATED:	Wed, Nov 23 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -36,13 +36,35 @@
  *   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  *   THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AppDelegate.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
+ * $Id: DataViewController.m,v 1.1 2016/01/28 12:40:37 kouichi Exp $
  *
  *****************************************************************************/
 
-@import Foundation;
-@import UIKit;
+#import "DataViewController.h"
 
-@interface AppDelegate : UIResponder
-@property (nonatomic,strong) UIWindow *	window;
+@interface DataViewController ()
+@property (nonatomic,strong,readwrite) UILabel *	textLabel;
+@end
+
+@implementation DataViewController
+
+-(void)didReceiveMemoryWarning
+{
+  [super didReceiveMemoryWarning];
+  // Dispose of any resources that can be recreated.
+}
+
+-(void)loadView
+{
+  [super loadView];
+
+  UILabel * label;
+  label = [[UILabel alloc] initWithFrame:self.view.bounds];
+  label.font = [UIFont systemFontOfSize:64.0f];
+  label.textAlignment = NSTextAlignmentCenter;
+  label.adjustsFontSizeToFitWidth = YES;
+  [self.view addSubview:label];
+  self.textLabel = label;
+}
+
 @end

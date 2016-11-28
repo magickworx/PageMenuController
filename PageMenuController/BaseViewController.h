@@ -1,12 +1,12 @@
 /*****************************************************************************
  *
- * FILE:	AppDelegate.h
- * DESCRIPTION:	PageMenuControllerDemo: Application Main Controller
+ * FILE:	BaseViewController.h
+ * DESCRIPTION:	PageMenuControllerDemo: Base View Controller
  * DATE:	Tue, Nov 22 2016
  * UPDATED:	Tue, Nov 22 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
- * URL:		http://www.MagickWorX.COM/
+ * URL:		http://www.iPhone.MagickWorX.COM/
  * COPYRIGHT:	(c) 2016 阿部康一／Kouichi ABE (WALL), All rights reserved.
  * LICENSE:
  *
@@ -36,13 +36,12 @@
  *   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  *   THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AppDelegate.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
+ * $Id: BaseViewController.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
  *
  *****************************************************************************/
 
-@import Foundation;
-@import UIKit;
+@import	Foundation;
+@import	UIKit;
 
-@interface AppDelegate : UIResponder
-@property (nonatomic,strong) UIWindow *	window;
+@interface BaseViewController : UIViewController
 @end

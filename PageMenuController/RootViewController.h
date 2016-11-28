@@ -1,7 +1,7 @@
 /*****************************************************************************
  *
- * FILE:	AppDelegate.h
- * DESCRIPTION:	PageMenuControllerDemo: Application Main Controller
+ * FILE:	RootViewController.h
+ * DESCRIPTION:	PageMenuControllerDemo: Application Root View Controller
  * DATE:	Tue, Nov 22 2016
  * UPDATED:	Tue, Nov 22 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
@@ -36,13 +36,11 @@
  *   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  *   THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AppDelegate.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
+ * $Id: RootViewController.h,v 1.1 2016/01/28 12:40:36 kouichi Exp $
  *
  *****************************************************************************/
 
-@import Foundation;
-@import UIKit;
+#import "BaseViewController.h"
 
-@interface AppDelegate : UIResponder
-@property (nonatomic,strong) UIWindow *	window;
+@interface RootViewController : BaseViewController
 @end
