@@ -31,7 +31,7 @@ How to use PageMenuController
 
 **1) PageMenuController フォルダの PSKPageMenuController.h と PSKPageMenuController.m ファイルを Xcode のプロジェクトにコピーする。**
 
-**2) ベースとする View Controller に property を記述する。**
+**2) ベースとなる View Controller に property を記述する。**
 
 ```objectivec
 @property (nonatomic,strong) PMKPageMenuController * pageMenuController;
@@ -70,13 +70,34 @@ self.pageMenuController = pageMenuController;
 ```
 より詳細なコードは RootViewController.m 内の loadView を見てね。
 
+**4) Delegate Methods (optional)**
+
+ページの切り替え時に呼び出される Delegate を使うことも可能。
+
+```objectivec
+pageMenuController.delegate = self;
+```
+
+上記のような記述を追加して、必要に応じて以下のメソッドを実装してね。
+
+```objectivec
+// ページが切り替えられる前に呼び出される
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+ willMoveToViewController:(UIViewController *)viewController
+	      atMenuIndex:(NSUInteger)index;
+// ページが切り替え後に呼び出される
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+  didMoveToViewController:(UIViewController *)viewController
+	      atMenuIndex:(NSUInteger)index;
+```
+
 Requirements
 ============
 
  - ARC
  - Objective-C
- - iOS 10.x
- - Xcode 8.x
+ - iOS 10.1 or later
+ - Xcode 8.1 or later
 
 License Agreement
 ============
