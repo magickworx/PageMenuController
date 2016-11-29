@@ -206,9 +206,9 @@ static const NSInteger kMenuItemBaseTag = 161122;
 {
   __weak typeof(self)	weakSelf = self;
 
-  if ([_delegate respondsToSelector:@selector(pageMenuController:didSelectViewController:atMenuIndex:)]) {
+  if ([_delegate respondsToSelector:@selector(pageMenuController:didMoveToViewController:atMenuIndex:)]) {
     [_delegate pageMenuController:self
-	  didSelectViewController:self.childControllers[currentIndex]
+	  didMoveToViewController:self.childControllers[currentIndex]
 		      atMenuIndex:currentIndex];
   }
 
@@ -278,13 +278,13 @@ static const NSInteger kMenuItemBaseTag = 161122;
 
   CGFloat  width = self.scrollView.frame.size.width;
   CGPoint offset = self.scrollView.contentOffset;
-  CGSize    size = self.scrollView.contentSize;
 
   CGFloat sx = offset.x;
   CGFloat ex = sx + width;
   if ((x < sx) || (x + w > ex)) {
-    if (x + width > size.width) { // XXX: 右端の処理
-      x = size.width - width;
+    if (x + w > ex) { // XXX: 表示中の右端の処理
+      CGFloat dx = x + w - ex;
+      x = sx + dx;
     }
     [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
   }
@@ -450,6 +450,20 @@ static const NSInteger kMenuItemBaseTag = 161122;
 }
 
 /*****************************************************************************/
+
+#pragma mark - UIPageViewControllerDelegate (optional)
+// Sent when a gesture-initiated transition begins.
+-(void)pageViewController:(UIPageViewController *)pageViewController
+	willTransitionToViewControllers:(NSArray<UIViewController *> *)pendingViewControllers
+{
+  if ([_delegate respondsToSelector:@selector(pageMenuController:willMoveToViewController:atMenuIndex:)]) {
+    UIViewController * viewController = [pendingViewControllers lastObject];
+    NSUInteger index = [self.childControllers indexOfObject:viewController];
+    [_delegate pageMenuController:self
+	 willMoveToViewController:viewController
+		      atMenuIndex:index];
+  }
+}
 
 #pragma mark - UIPageViewControllerDelegate (optional)
 /*

@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.h
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Wed, Nov 23 2016
+ * UPDATED:	Tue, Nov 29 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -44,9 +44,9 @@
 @import UIKit;
 
 typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
-  PMKPageMenuControllerStylePlain,	// similar to NewsPass
-  PMKPageMenuControllerStyleTab,	// similar to Gunosy
-  PMKPageMenuControllerStyleSmartTab	// similar to SmartNews
+  PMKPageMenuControllerStylePlain,	// like NewsPass
+  PMKPageMenuControllerStyleTab,	// like Gunosy
+  PMKPageMenuControllerStyleSmartTab	// like SmartNews
 };
 
 @protocol PMKPageMenuControllerDelegate;
@@ -70,6 +70,9 @@ typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
 @protocol PMKPageMenuControllerDelegate <NSObject>
 @optional
 -(void)pageMenuController:(PMKPageMenuController *)pageMenuController
-  didSelectViewController:(UIViewController *)viewController
+ willMoveToViewController:(UIViewController *)viewController
+	      atMenuIndex:(NSUInteger)index;
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+  didMoveToViewController:(UIViewController *)viewController
 	      atMenuIndex:(NSUInteger)index;
 @end

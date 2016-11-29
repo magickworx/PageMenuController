@@ -75,7 +75,6 @@
   for (NSString * month in monthSymbols) {
     DataViewController * vc = [DataViewController new];
     vc.title = month;
-    vc.view.backgroundColor = [UIColor lightGrayColor];
     [controllers addObject:vc];
   }
 
@@ -102,7 +101,11 @@
   NSUInteger numberOfControllers = controllers.count;
   for (NSInteger i = 0; i < numberOfControllers; i++) {
     DataViewController * vc = controllers[i];
+#if	0
     vc.view.backgroundColor = [UIColor whiteColor];
+#else
+    vc.view.backgroundColor = [UIColor colorWithRed:0.96f green:0.96f blue:0.96f alpha:1.0f];
+#endif
     vc.textLabel.text = [NSString stringWithFormat:@"%zd", i+1];
   }
 }
