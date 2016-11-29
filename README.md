@@ -3,7 +3,9 @@ PageMenuController
 
 日本のニュース系アプリで使われている横スクロールのメニュー画面とそのコンテンツを表示するユーザインタフェースのクラスを実装。Xcode のプロジェクト一式を登録してあるので、実行すればシミュレータ上で動作確認が可能。
 
-横スクロールするメニューは UIScrollView を利用し、タイトル表示用の UILabel を管理している。コンテンツ表示部は UIPageViewController を使って画面を切り替えている。とてもシンプルな実装なので、必要に応じて自分で改良してね。
+横スクロールするメニューは UIScrollView を利用し、タイトル表示用の UILabel を管理している。コンテンツ表示部は UIPageViewController を使って画面を切り替えている。とてもシンプルな実装なので、改良も簡単。
+
+たとえば、メニューを画像にしたい場合は、UILabel を UIImageView に替えて、UIImage で指定する仕組みにする。現実装では UIViewController の title から自動的にメニューのタイトルを作成しているが、initializer で UIViewController の配列と一緒に UIImage の配列を渡すようにすれば良い。
 
 Screenshot
 ============
@@ -14,9 +16,9 @@ Screenshot
 
 Xcode の Edit Scheme... の Build Configuration の "Debug (Plain)" を選択してビルド。
 
-**Gnunosy っぽい画面（PMKPageMenuControllerStyleTab）**
+**Gunosy っぽい画面（PMKPageMenuControllerStyleTab）**
 
-![Tab モード](screenshot_tab.png "Gnunosy っぽい画面")
+![Tab モード](screenshot_tab.png "Gunosy っぽい画面")
 
 Xcode の Edit Scheme... の Build Configuration の "Debug (Tab)" を選択してビルド。
 
