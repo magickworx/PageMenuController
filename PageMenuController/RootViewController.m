@@ -3,7 +3,7 @@
  * FILE:	RootViewController.m
  * DESCRIPTION:	PageMenuControllerDemo: Application Root View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Mon, Nov 28 2016
+ * UPDATED:	Tue, Nov 29 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -75,6 +75,7 @@
   for (NSString * month in monthSymbols) {
     DataViewController * vc = [DataViewController new];
     vc.title = month;
+    vc.view.backgroundColor = [UIColor lightGrayColor];
     [controllers addObject:vc];
   }
 

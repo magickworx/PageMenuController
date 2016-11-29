@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.m
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Wed, Nov 23 2016
+ * UPDATED:	Tue, Nov 29 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -45,6 +45,7 @@
 static const CGFloat kMenuItemWidth   = 90.0f;
 static const CGFloat kMenuItemHeight  = 40.0f;
 static const CGFloat kMenuItemMargin  = 10.0f;
+static const CGFloat kSmartTabMargin  =  8.0f;
 static const CGFloat kIndicatorHeight =  2.0f;
 
 static const NSInteger kMenuItemBaseTag = 161122;
@@ -211,10 +212,23 @@ static const NSInteger kMenuItemBaseTag = 161122;
 		      atMenuIndex:currentIndex];
   }
 
-  if (_menuStyle == PMKPageMenuControllerStyleTab) {
-    UILabel * label = self.menuItems[_currentIndex];
-    label.textColor = [self menuColorAtIndex:_currentIndex];
-    label.backgroundColor = [UIColor clearColor];
+  switch (_menuStyle) {
+    case PMKPageMenuControllerStyleTab: {
+	UILabel * label = self.menuItems[_currentIndex];
+	label.textColor = [self menuColorAtIndex:_currentIndex];
+	label.backgroundColor = [UIColor clearColor];
+      }
+      break;
+    case PMKPageMenuControllerStyleSmartTab: {
+	UILabel * label = self.menuItems[_currentIndex];
+	CGRect frame = label.frame;
+	frame.origin.y = kSmartTabMargin;
+	frame.size.height = kMenuItemHeight - kSmartTabMargin;
+	label.frame = frame;
+      }
+      break;
+    default:
+      break;
   }
 
   dispatch_block_t mainBlock = ^{
@@ -242,17 +256,23 @@ static const NSInteger kMenuItemBaseTag = 161122;
 	self.menuIndicator.frame = frame;
       }
       break;
-    case PMKPageMenuControllerStyleTab:
-      self.bottomBorder.backgroundColor = menuColor.CGColor;
-      self.menuIndicator.backgroundColor = [UIColor clearColor];
-      {
+    case PMKPageMenuControllerStyleTab: {
 	UILabel * label = self.menuItems[index];
 	label.textColor = [UIColor whiteColor];
 	label.backgroundColor = menuColor;
+	self.bottomBorder.backgroundColor = menuColor.CGColor;
+	self.menuIndicator.backgroundColor = [UIColor clearColor];
       }
       break;
-    case PMKPageMenuControllerStyleSmartTab:
-      self.menuIndicator.backgroundColor = menuColor;
+    case PMKPageMenuControllerStyleSmartTab: {
+	UILabel * label = self.menuItems[index];
+	CGRect frame = label.frame;
+	frame.origin.y = 0.0f;
+	frame.size.height = kMenuItemHeight;
+	label.frame = frame;
+	[self roundingCornersOfLabel:label];
+	self.menuIndicator.backgroundColor = menuColor;
+      }
       break;
   }
 
@@ -270,6 +290,22 @@ static const NSInteger kMenuItemBaseTag = 161122;
   }
 }
 
+#pragma mark - convenient method
+// 左上と右上の角を丸める
+-(void)roundingCornersOfLabel:(UILabel *)label
+{
+  @autoreleasepool {
+    UIBezierPath * maskPath =
+	[UIBezierPath bezierPathWithRoundedRect:label.bounds
+		      byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight)
+		      cornerRadii:CGSizeMake(5.0f, 5.0f) ];
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.frame  = label.bounds;
+    maskLayer.path   = maskPath.CGPath;
+    label.layer.mask = maskLayer;
+  }
+}
+
 /*****************************************************************************/
 
 #pragma mark - private method
@@ -278,9 +314,11 @@ static const NSInteger kMenuItemBaseTag = 161122;
   self.menuItems = [NSMutableArray new];
 
   CGFloat x = 0.0f;
-  CGFloat y = 0.0f;
+  CGFloat y = _menuStyle == PMKPageMenuControllerStyleSmartTab
+	    ? kSmartTabMargin
+	    : 0.0f;
   CGFloat w = kMenuItemWidth;
-  CGFloat h = kMenuItemHeight;
+  CGFloat h = kMenuItemHeight - y;
 
   NSUInteger  tc = self.titles.count;
   for (NSUInteger i = 0; i < tc; i++) {
@@ -304,25 +342,23 @@ static const NSInteger kMenuItemBaseTag = 161122;
 	  label.textColor = menuColor;
 	  label.backgroundColor = [UIColor clearColor];
 	}
+	[self roundingCornersOfLabel:label];
 	break;
       case PMKPageMenuControllerStyleSmartTab:
 	label.textColor = [UIColor whiteColor];
 	label.backgroundColor = menuColor;
+	if (i == 0) { // XXX: 最初のタブは大きく表示
+	  CGRect frame = label.frame;
+	  frame.origin.y = 0.0f;
+	  frame.size.height = kMenuItemHeight;
+	  label.frame = frame;
+	}
+	[self roundingCornersOfLabel:label];
 	break;
     }
     label.userInteractionEnabled = YES;
     [self.scrollView addSubview:label];
     x += (w + _itemMargin);
-
-    // 左上と右上の角を丸める
-    UIBezierPath * maskPath =
-	[UIBezierPath bezierPathWithRoundedRect:label.bounds
-		      byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight)
-		      cornerRadii:CGSizeMake(5.0f, 5.0f) ];
-    CAShapeLayer * maskLayer = [CAShapeLayer layer];
-    maskLayer.frame  = label.bounds;
-    maskLayer.path   = maskPath.CGPath;
-    label.layer.mask = maskLayer;
 
     UITapGestureRecognizer * tapGesture;
     tapGesture = [[UITapGestureRecognizer alloc]
