@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.m
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Tue, Nov 29 2016
+ * UPDATED:	Wed, Nov 30 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -277,8 +277,24 @@ static const NSInteger kMenuItemBaseTag = 161122;
   }
 
   CGFloat  width = self.scrollView.frame.size.width;
+#if	1
+  // 選択したタブを中央寄せにする計算
+  CGSize    size = self.scrollView.contentSize;
+  CGFloat  leftX = (width - w) * 0.5f; // 画面幅の半分からタブ幅の半分を引く
+  CGFloat   tabN = ceilf(width / w); // 画面内に見えるタブの数
+  CGFloat rightX = size.width - floorf((tabN * 0.5f + 0.5f) * w);
+  if (x < leftX) {
+    x = 0.0f;
+  }
+  else if (x > rightX) {
+    x = size.width - width;
+  }
+  else {
+    x -= leftX;
+  }
+  [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
+#else
   CGPoint offset = self.scrollView.contentOffset;
-
   CGFloat sx = offset.x;
   CGFloat ex = sx + width;
   if ((x < sx) || (x + w > ex)) {
@@ -288,6 +304,7 @@ static const NSInteger kMenuItemBaseTag = 161122;
     }
     [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
   }
+#endif
 }
 
 #pragma mark - convenient method
