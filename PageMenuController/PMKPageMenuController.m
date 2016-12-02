@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.m
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Wed, Nov 30 2016
+ * UPDATED:	Fri, Dec  2 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -148,9 +148,15 @@ static const NSInteger kMenuItemBaseTag = 161122;
 {
   [super viewDidLoad];
 
+  UIPageViewControllerTransitionStyle style =
+#if	1
+	UIPageViewControllerTransitionStyleScroll;
+#else
+	UIPageViewControllerTransitionStylePageCurl;
+#endif
   UIPageViewController * pageViewController =
 	[[UIPageViewController alloc]
-	  initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll
+	  initWithTransitionStyle:style
 	  navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal
 	  options:nil];
   pageViewController.delegate = self;
@@ -204,14 +210,13 @@ static const NSInteger kMenuItemBaseTag = 161122;
 #pragma mark - override setter
 -(void)setCurrentIndex:(NSUInteger)currentIndex
 {
-  __weak typeof(self)	weakSelf = self;
-
   if ([_delegate respondsToSelector:@selector(pageMenuController:didMoveToViewController:atMenuIndex:)]) {
     [_delegate pageMenuController:self
 	  didMoveToViewController:self.childControllers[currentIndex]
 		      atMenuIndex:currentIndex];
   }
 
+  // タブの形状を復元
   switch (_menuStyle) {
     case PMKPageMenuControllerStyleTab: {
 	UILabel * label = self.menuItems[_currentIndex];
@@ -231,10 +236,7 @@ static const NSInteger kMenuItemBaseTag = 161122;
       break;
   }
 
-  dispatch_block_t mainBlock = ^{
-    [weakSelf moveIndicatorAtIndex:currentIndex];
-  };
-  dispatch_async(dispatch_get_main_queue(), mainBlock);
+  [self moveIndicatorAtIndex:currentIndex];
 
   _currentIndex = currentIndex;
 }
@@ -242,9 +244,12 @@ static const NSInteger kMenuItemBaseTag = 161122;
 #pragma mark - private method
 -(void)moveIndicatorAtIndex:(NSUInteger)index
 {
+  // まずはタブを移動させる
+  [self willMoveIndicatorAtIndex:index];
+
+  // そのあとタブの装飾をする
   CGFloat w = kMenuItemWidth + _itemMargin;
   CGFloat x = w * index;
-  CGFloat y = 0.0f;
 
   UIColor * menuColor = [self menuColorAtIndex:index];
 
@@ -275,36 +280,25 @@ static const NSInteger kMenuItemBaseTag = 161122;
       }
       break;
   }
+}
+
+#pragma mark - private method
+-(void)willMoveIndicatorAtIndex:(NSUInteger)index
+{
+  CGFloat w = kMenuItemWidth + _itemMargin;
+  CGFloat x = w * index;
+  CGFloat y = 0.0f;
 
   CGFloat  width = self.scrollView.frame.size.width;
-#if	1
   // 選択したタブを中央寄せにする計算
   CGSize    size = self.scrollView.contentSize;
   CGFloat  leftX = (width - w) * 0.5f; // 画面幅の半分からタブ幅の半分を引く
   CGFloat   tabN = ceilf(width / w); // 画面内に見えるタブの数
   CGFloat rightX = size.width - floorf((tabN * 0.5f + 0.5f) * w);
-  if (x < leftX) {
-    x = 0.0f;
-  }
-  else if (x > rightX) {
-    x = size.width - width;
-  }
-  else {
-    x -= leftX;
-  }
+       if (x <  leftX) { x  = 0.0f; }
+  else if (x > rightX) { x  = size.width - width; }
+  else		       { x -= leftX; }
   [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
-#else
-  CGPoint offset = self.scrollView.contentOffset;
-  CGFloat sx = offset.x;
-  CGFloat ex = sx + width;
-  if ((x < sx) || (x + w > ex)) {
-    if (x + w > ex) { // XXX: 表示中の右端の処理
-      CGFloat dx = x + w - ex;
-      x = sx + dx;
-    }
-    [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
-  }
-#endif
 }
 
 #pragma mark - convenient method
@@ -404,24 +398,19 @@ static const NSInteger kMenuItemBaseTag = 161122;
 #pragma mark - UITapGestureRecognizer handler
 -(void)handleSingleTap:(UITapGestureRecognizer *)gesture
 {
-  __weak typeof(self)	weakSelf = self;
+  NSInteger index = [gesture view].tag - kMenuItemBaseTag;
 
-  NSInteger i = [gesture view].tag - kMenuItemBaseTag;
-
-  UIViewController * viewController = self.childControllers[i];
+  UIViewController * viewController = self.childControllers[index];
   NSArray * viewControllers = @[viewController];
   UIPageViewControllerNavigationDirection direction
-	= (i > _currentIndex)
+	= (index > _currentIndex)
 	? UIPageViewControllerNavigationDirectionForward
 	: UIPageViewControllerNavigationDirectionReverse;
-  void (^completionBlock)(BOOL) = ^(BOOL finished) {
-    weakSelf.currentIndex = i;
-  };
+  self.currentIndex = index;
   [self.pageViewController setViewControllers:viewControllers
 			   direction:direction
 			   animated:YES
-			   completion:completionBlock];
-
+			   completion:nil];
 }
 
 #pragma mark - private method
@@ -473,9 +462,14 @@ static const NSInteger kMenuItemBaseTag = 161122;
 -(void)pageViewController:(UIPageViewController *)pageViewController
 	willTransitionToViewControllers:(NSArray<UIViewController *> *)pendingViewControllers
 {
+  UIViewController * viewController = [pendingViewControllers lastObject];
+  NSUInteger index = [self.childControllers indexOfObject:viewController];
+
+  if (index != _currentIndex) {
+    [self willMoveIndicatorAtIndex:index];
+  }
+
   if ([_delegate respondsToSelector:@selector(pageMenuController:willMoveToViewController:atMenuIndex:)]) {
-    UIViewController * viewController = [pendingViewControllers lastObject];
-    NSUInteger index = [self.childControllers indexOfObject:viewController];
     [_delegate pageMenuController:self
 	 willMoveToViewController:viewController
 		      atMenuIndex:index];
@@ -494,9 +488,12 @@ static const NSInteger kMenuItemBaseTag = 161122;
   previousViewControllers:(NSArray<UIViewController *> *)previousViewControllers
       transitionCompleted:(BOOL)completed
 {
+  NSUInteger index = [self.childControllers indexOfObject:[pageViewController.viewControllers lastObject]];
   if (completed) {
-    NSUInteger index = [self.childControllers indexOfObject:[pageViewController.viewControllers lastObject]];
     self.currentIndex = index;
+  }
+  else {
+    [self willMoveIndicatorAtIndex:index];
   }
 }
 

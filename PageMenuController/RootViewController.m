@@ -3,7 +3,7 @@
  * FILE:	RootViewController.m
  * DESCRIPTION:	PageMenuControllerDemo: Application Root View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Tue, Nov 29 2016
+ * UPDATED:	Fri, Dec  2 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -44,7 +44,7 @@
 #import "RootViewController.h"
 #import "DataViewController.h"
 
-@interface RootViewController ()
+@interface RootViewController () <PMKPageMenuControllerDelegate>
 @property (nonatomic,strong) PMKPageMenuController *	pageMenuController;
 @end
 
@@ -93,6 +93,7 @@
 			initWithControllers:controllers
 			menuStyle:menuStyle
 			topBarHeight:statusBarHeight];
+  pageMenuController.delegate = self;
   [self addChildViewController:pageMenuController];
   [self.view addSubview:pageMenuController.view];
   [pageMenuController didMoveToParentViewController:self];
@@ -108,6 +109,26 @@
 #endif
     vc.textLabel.text = [NSString stringWithFormat:@"%zd", i+1];
   }
+}
+
+/*****************************************************************************/
+
+#pragma mark - PMKPageMenuControllerDelegate (optional)
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+ willMoveToViewController:(UIViewController *)viewController
+	      atMenuIndex:(NSUInteger)index
+{
+  // ページが切り替わる前に呼び出される
+  // 必要なコードを記述せよ
+}
+
+#pragma mark - PMKPageMenuControllerDelegate (optional)
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+  didMoveToViewController:(UIViewController *)viewController
+	      atMenuIndex:(NSUInteger)index
+{
+  // ページが切り替わった直後に呼び出される
+  // 必要なコードを記述せよ
 }
 
 @end
