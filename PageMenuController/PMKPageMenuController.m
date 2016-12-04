@@ -538,6 +538,7 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 	CALayer * layer = [CALayer new];
 	layer.frame = CGRectMake(0.0f, height - 2.0f, width, 2.0f); 
 	layer.backgroundColor = menuColor.CGColor;
+	layer.actions = @{ @"backgroundColor" : [NSNull null] };
 	[self.scrollView.layer addSublayer:layer];
 	self.bottomBorder = layer;
       }
