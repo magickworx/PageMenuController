@@ -3,7 +3,7 @@
  * FILE:	RootViewController.m
  * DESCRIPTION:	PageMenuControllerDemo: Application Root View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Fri, Dec  2 2016
+ * UPDATED:	Sun, Dec  4 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -85,6 +85,8 @@
   PMKPageMenuControllerStyle menuStyle = PMKPageMenuControllerStyleTab;
 #elif	MENU_STYLE_SMART
   PMKPageMenuControllerStyle menuStyle = PMKPageMenuControllerStyleSmartTab;
+#elif	MENU_STYLE_HACKA
+  PMKPageMenuControllerStyle menuStyle = PMKPageMenuControllerStyleHackaTab;
 #else
   PMKPageMenuControllerStyle menuStyle = PMKPageMenuControllerStylePlain;
 #endif

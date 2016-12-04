@@ -10,23 +10,30 @@ PageMenuController
 Screenshot
 ============
 
-**NewsPass っぽい画面（PMKPageMenuControllerStylePlain）**
+**「ニュースパス」っぽい画面（PMKPageMenuControllerStylePlain）**
 
 ![Plain モード](screenshot_plain.png "NewsPass っぽい画面")
 
 Xcode の Edit Scheme... の Build Configuration の "Debug (Plain)" を選択してビルド。
 
-**Gunosy っぽい画面（PMKPageMenuControllerStyleTab）**
+**「グノシー」っぽい画面（PMKPageMenuControllerStyleTab）**
 
 ![Tab モード](screenshot_tab.png "Gunosy っぽい画面")
 
 Xcode の Edit Scheme... の Build Configuration の "Debug (Tab)" を選択してビルド。
 
-**SmartNews っぽい画面（PMKPageMenuControllerStyleSmartTab）**
+**「スマートニュース」っぽい画面（PMKPageMenuControllerStyleSmartTab）**
 
 ![Smart モード](screenshot_smart.png "SmartNews っぽい画面")
 
 Xcode の Edit Scheme... の Build Configuration の "Debug (Smart)" を選択してビルド。
+
+**「ハッカドール」っぽい画面（PMKPageMenuControllerStyleHackaTab）**
+
+![Hacka モード](screenshot_hacka.png "Hackadoll っぽい画面")
+
+Xcode の Edit Scheme... の Build Configuration の "Debug (Hacka)" を選択してビルド。
+
 
 How to use PageMenuController
 ============

@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.m
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Fri, Dec  2 2016
+ * UPDATED:	Sun, Dec  4 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -50,6 +50,10 @@ static const CGFloat kIndicatorHeight =  2.0f;
 
 static const NSInteger kMenuItemBaseTag = 161122;
 
+static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
+
+#define	kHackaHexColor	0x66cdaa
+
 @interface PMKPageMenuController () <UIScrollViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource>
 @property (nonatomic,readwrite) PMKPageMenuControllerStyle	menuStyle;
 @property (nonatomic,strong,readwrite) NSArray *	titles;
@@ -69,16 +73,29 @@ static const NSInteger kMenuItemBaseTag = 161122;
 
 -(instancetype)initWithControllers:(NSArray<UIViewController *> *)controllers
 			 menuStyle:(PMKPageMenuControllerStyle)menuStyle
+			menuColors:(NSArray<UIColor *> *)menuColors
 		      topBarHeight:(CGFloat)topBarHeight
 {
   self = [super init];
   if (self) {
        _menuStyle = menuStyle;
-      _itemMargin = menuStyle == PMKPageMenuControllerStylePlain
-		  ? kMenuItemMargin
-		  : 0.0f;
+      _menuColors = menuColors;
     _topBarHeight = topBarHeight;
     _currentIndex = 0;
+
+    switch (menuStyle) {
+      case PMKPageMenuControllerStylePlain:
+	_itemMargin = kMenuItemMargin;
+	break;
+      case PMKPageMenuControllerStyleHackaTab:
+	_itemMargin = kMenuItemMargin * 0.4f;
+	break;
+      default:
+      case PMKPageMenuControllerStyleTab:
+      case PMKPageMenuControllerStyleSmartTab:
+	_itemMargin = 0.0f;
+	break;
+    }
 
     _childControllers = [[NSArray alloc]
 			  initWithArray:controllers copyItems:NO];
@@ -96,17 +113,26 @@ static const NSInteger kMenuItemBaseTag = 161122;
       n++;
     }
     _titles = [[NSArray alloc] initWithArray:titles copyItems:YES];
+  }
+  return self;
+}
 
-    self.menuColors = @[
+-(instancetype)initWithControllers:(NSArray<UIViewController *> *)controllers
+			 menuStyle:(PMKPageMenuControllerStyle)menuStyle
+		      topBarHeight:(CGFloat)topBarHeight
+{
+  NSArray * menuColors = @[
 	[self colorWithHex:0xff7f7f],
 	[self colorWithHex:0xbf7fff],
 	[self colorWithHex:0x7f7fff],
 	[self colorWithHex:0x7fbfff],
 	[self colorWithHex:0x7fff7f],
 	[self colorWithHex:0xffbf7f]
-    ];
-  }
-  return self;
+  ];
+  return [self initWithControllers:controllers
+			 menuStyle:menuStyle
+			menuColors:menuColors
+		      topBarHeight:topBarHeight];
 }
 
 -(void)dealloc
@@ -232,6 +258,18 @@ static const NSInteger kMenuItemBaseTag = 161122;
 	label.frame = frame;
       }
       break;
+    case PMKPageMenuControllerStyleHackaTab: {
+	UILabel * label = self.menuItems[_currentIndex];
+	label.textColor = [self colorWithHex:kHackaHexColor];
+	label.backgroundColor = [UIColor clearColor];
+	CGRect frame = label.frame;
+	frame.origin.y = kSmartTabMargin;
+	frame.size.height = kMenuItemHeight - kSmartTabMargin;
+	label.frame = frame;
+	CAShapeLayer * shapeLayer = [label.layer valueForKey:kBorderLayerKey];
+	shapeLayer.hidden = NO;
+      }
+      break;
     default:
       break;
   }
@@ -279,6 +317,19 @@ static const NSInteger kMenuItemBaseTag = 161122;
 	self.menuIndicator.backgroundColor = menuColor;
       }
       break;
+    case PMKPageMenuControllerStyleHackaTab: {
+	UILabel * label = self.menuItems[index];
+	label.textColor = [UIColor whiteColor];
+	label.backgroundColor = [self colorWithHex:kHackaHexColor];
+	CGRect frame = label.frame;
+	frame.origin.y = 0.0f;
+	frame.size.height = kMenuItemHeight;
+	label.frame = frame;
+	self.menuIndicator.backgroundColor = [UIColor clearColor];
+	CAShapeLayer * shapeLayer = [label.layer valueForKey:kBorderLayerKey];
+	shapeLayer.hidden = YES;
+      }
+      break;
   }
 }
 
@@ -317,6 +368,36 @@ static const NSInteger kMenuItemBaseTag = 161122;
   }
 }
 
+#pragma mark - convenient method
+// 左端と上と右端のみ枠線を付ける
+-(void)addBordersOfLabel:(UILabel *)label
+{
+  @autoreleasepool {
+    CGFloat w = label.frame.size.width;
+    CGFloat h = label.frame.size.height;
+    CGFloat x = 0.0f;
+    CGFloat y = h;
+    UIBezierPath * bezierPath = [UIBezierPath new];
+    [bezierPath moveToPoint:CGPointMake(x, y)];    y = 0.0f;
+    [bezierPath addLineToPoint:CGPointMake(x, y)]; x = w;
+    [bezierPath addLineToPoint:CGPointMake(x, y)]; y = h;
+    [bezierPath addLineToPoint:CGPointMake(x, y)]; 
+    CAShapeLayer * shapeLayer = [CAShapeLayer new];
+    shapeLayer.frame = label.bounds;
+    shapeLayer.path = bezierPath.CGPath;
+    shapeLayer.fillColor = [UIColor clearColor].CGColor;
+    shapeLayer.strokeColor = [self colorWithHex:kHackaHexColor].CGColor;
+    shapeLayer.lineWidth = 1.0f;
+    /*
+     * XXX: Disable implicit animation for hidden of CAShapeLayer.
+     * http://stackoverflow.com/questions/5833488/how-to-disable-calayer-implicit-animations
+     */
+    shapeLayer.actions = @{ @"hidden" : [NSNull null] };
+    [label.layer addSublayer:shapeLayer];
+    [label.layer setValue:shapeLayer forKey:kBorderLayerKey];
+  }
+}
+
 /*****************************************************************************/
 
 #pragma mark - private method
@@ -325,7 +406,8 @@ static const NSInteger kMenuItemBaseTag = 161122;
   self.menuItems = [NSMutableArray new];
 
   CGFloat x = 0.0f;
-  CGFloat y = _menuStyle == PMKPageMenuControllerStyleSmartTab
+  CGFloat y = _menuStyle == PMKPageMenuControllerStyleSmartTab ||
+	      _menuStyle == PMKPageMenuControllerStyleHackaTab
 	    ? kSmartTabMargin
 	    : 0.0f;
   CGFloat w = kMenuItemWidth;
@@ -365,6 +447,22 @@ static const NSInteger kMenuItemBaseTag = 161122;
 	  label.frame = frame;
 	}
 	[self roundingCornersOfLabel:label];
+	break;
+      case PMKPageMenuControllerStyleHackaTab:
+	menuColor = [self colorWithHex:kHackaHexColor];
+	if (i == _currentIndex) {
+	  label.textColor = [UIColor whiteColor];
+	  label.backgroundColor = menuColor;
+	  CGRect frame = label.frame;
+	  frame.origin.y = 0.0f;
+	  frame.size.height = kMenuItemHeight;
+	  label.frame = frame;
+	}
+	else {
+	  label.textColor = menuColor;
+	  label.backgroundColor = [UIColor clearColor];
+	}
+	[self addBordersOfLabel:label];
 	break;
     }
     label.userInteractionEnabled = YES;
@@ -446,6 +544,15 @@ static const NSInteger kMenuItemBaseTag = 161122;
       // XXX: FALL THROUGH
     case PMKPageMenuControllerStyleSmartTab:
       w = self.scrollView.contentSize.width;
+      break;
+    case PMKPageMenuControllerStyleHackaTab: {
+	menuColor = [self colorWithHex:kHackaHexColor];
+	CALayer * layer = [CALayer new];
+	layer.frame = CGRectMake(0.0f, height - 2.0f, width, 2.0f); 
+	layer.backgroundColor = menuColor.CGColor;
+	[self.scrollView.layer addSublayer:layer];
+	self.bottomBorder = layer;
+      }
       break;
   }
   UIView * menuIndicator;
