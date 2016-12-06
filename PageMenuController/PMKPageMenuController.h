@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.h
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Sun, Dec  4 2016
+ * UPDATED:	Tue, Dec  6 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -52,6 +52,8 @@ typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
 
 @protocol PMKPageMenuControllerDelegate;
 
+@class PMKMenuItem;
+
 @interface PMKPageMenuController : UIViewController
 
 @property (nonatomic,weak) id <PMKPageMenuControllerDelegate>	delegate;
@@ -81,4 +83,22 @@ typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
 -(void)pageMenuController:(PMKPageMenuController *)pageMenuController
   didMoveToViewController:(UIViewController *)viewController
 	      atMenuIndex:(NSUInteger)index;
+
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+      didPrepareMenuItems:(NSArray<PMKMenuItem *> *)menuItems;
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+	didSelectMenuItem:(PMKMenuItem *)menuItem
+	      atMenuIndex:(NSUInteger)index;
+@end
+
+
+@interface PMKMenuItem : NSObject
+@property (nonatomic,copy) NSString *	title;	// set automatically
+@property (nonatomic,assign) NSInteger	tag;	// default: 0
+@property (nonatomic,copy) NSString *	badgeValue; // default: nil
+@property (nonatomic,strong) UIColor *	titleColor; // set automatically
+@property (nonatomic,strong) UIColor *	backgroundColor; // set automatically
+@property (nonatomic,getter=isEnabled) BOOL	enabled; // default: YES
+@property (nonatomic,readonly,getter=isSelected) BOOL	selected; // default: NO
+@property (nonatomic,readonly) PMKPageMenuControllerStyle	menuStyle;
 @end

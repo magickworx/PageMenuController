@@ -3,7 +3,7 @@
  * FILE:	RootViewController.m
  * DESCRIPTION:	PageMenuControllerDemo: Application Root View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Sun, Dec  4 2016
+ * UPDATED:	Tue, Dec  6 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -131,6 +131,25 @@
 {
   // ページが切り替わった直後に呼び出される
   // 必要なコードを記述せよ
+}
+
+
+#pragma mark - PMKPageMenuControllerDelegate (optional)
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+      didPrepareMenuItems:(NSArray<PMKMenuItem *> *)menuItems
+{
+  NSUInteger i = 1;
+  for (PMKMenuItem * item in menuItems) {
+    item.badgeValue = [NSString stringWithFormat:@"%zd", i++];
+  }
+}
+
+#pragma mark - PMKPageMenuControllerDelegate (optional)
+-(void)pageMenuController:(PMKPageMenuController *)pageMenuController
+	didSelectMenuItem:(PMKMenuItem *)menuItem
+	      atMenuIndex:(NSUInteger)index
+{
+  menuItem.badgeValue = nil;
 }
 
 @end

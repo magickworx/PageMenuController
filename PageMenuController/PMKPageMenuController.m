@@ -3,7 +3,7 @@
  * FILE:	PMKPageMenuController.m
  * DESCRIPTION:	PageMenuKit: Paging Menu View Controller
  * DATE:	Tue, Nov 22 2016
- * UPDATED:	Sun, Dec  4 2016
+ * UPDATED:	Tue, Dec  6 2016
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		http://www.MagickWorX.COM/
@@ -50,9 +50,28 @@ static const CGFloat kIndicatorHeight =  2.0f;
 
 static const NSInteger kMenuItemBaseTag = 161122;
 
-static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
-
 #define	kHackaHexColor	0x66cdaa
+
+// http://stackoverflow.com/questions/1560081/how-can-i-create-a-uicolor-from-a-hex-string
+static UIColor *
+PMKColorWithHex(int hex)
+{
+  return [UIColor colorWithRed:((float)((hex & 0xff0000) >> 16)) / 255.0f
+			 green:((float)((hex & 0xff00)   >>  8)) / 255.0f
+			  blue:((float)( hex & 0xff)) / 255.0f
+			 alpha:1.0f];
+}
+
+
+@interface PMKMenuItem ()
+@property (nonatomic,strong) UILabel *	label;
+@property (nonatomic,assign) CGRect	menuFrame;
+@property (nonatomic,readwrite,getter=isSelected) BOOL	selected;
+@property (nonatomic,readwrite) PMKPageMenuControllerStyle	menuStyle;
+-(instancetype)initWithLabel:(UILabel *)label style:(PMKPageMenuControllerStyle)style;
+-(CAShapeLayer *)borderLayer;
+@end
+
 
 @interface PMKPageMenuController () <UIScrollViewDelegate,UIPageViewControllerDelegate,UIPageViewControllerDataSource>
 @property (nonatomic,readwrite) PMKPageMenuControllerStyle	menuStyle;
@@ -122,12 +141,12 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 		      topBarHeight:(CGFloat)topBarHeight
 {
   NSArray * menuColors = @[
-	[self colorWithHex:0xff7f7f],
-	[self colorWithHex:0xbf7fff],
-	[self colorWithHex:0x7f7fff],
-	[self colorWithHex:0x7fbfff],
-	[self colorWithHex:0x7fff7f],
-	[self colorWithHex:0xffbf7f]
+	PMKColorWithHex(0xff7f7f),
+	PMKColorWithHex(0xbf7fff),
+	PMKColorWithHex(0x7f7fff),
+	PMKColorWithHex(0x7fbfff),
+	PMKColorWithHex(0x7fff7f),
+	PMKColorWithHex(0xffbf7f)
   ];
   return [self initWithControllers:controllers
 			 menuStyle:menuStyle
@@ -210,6 +229,10 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
   pageViewController.view.frame = CGRectMake(x, y, w, h);
 
   [pageViewController didMoveToParentViewController:self];
+
+  if ([_delegate respondsToSelector:@selector(pageMenuController:didPrepareMenuItems:)]) {
+    [_delegate pageMenuController:self didPrepareMenuItems:self.menuItems];
+  }
 }
 
 -(void)viewWillAppear:(BOOL)animated
@@ -243,36 +266,30 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
   }
 
   // タブの形状を復元
+  PMKMenuItem * item = self.menuItems[_currentIndex];
   switch (_menuStyle) {
     case PMKPageMenuControllerStyleTab: {
-	UILabel * label = self.menuItems[_currentIndex];
-	label.textColor = [self menuColorAtIndex:_currentIndex];
-	label.backgroundColor = [UIColor clearColor];
-      }
-      break;
-    case PMKPageMenuControllerStyleSmartTab: {
-	UILabel * label = self.menuItems[_currentIndex];
-	CGRect frame = label.frame;
-	frame.origin.y = kSmartTabMargin;
-	frame.size.height = kMenuItemHeight - kSmartTabMargin;
-	label.frame = frame;
+	item.titleColor = [self menuColorAtIndex:_currentIndex];
+	item.backgroundColor = [UIColor clearColor];
       }
       break;
     case PMKPageMenuControllerStyleHackaTab: {
-	UILabel * label = self.menuItems[_currentIndex];
-	label.textColor = [self colorWithHex:kHackaHexColor];
-	label.backgroundColor = [UIColor clearColor];
-	CGRect frame = label.frame;
+	item.titleColor = PMKColorWithHex(kHackaHexColor);
+	item.backgroundColor = [UIColor clearColor];
+	[item borderLayer].hidden = NO;
+      }
+      // FALL THORUGH
+    case PMKPageMenuControllerStyleSmartTab: {
+	CGRect frame = item.menuFrame;
 	frame.origin.y = kSmartTabMargin;
 	frame.size.height = kMenuItemHeight - kSmartTabMargin;
-	label.frame = frame;
-	CAShapeLayer * shapeLayer = [label.layer valueForKey:kBorderLayerKey];
-	shapeLayer.hidden = NO;
+	item.menuFrame = frame;
       }
       break;
     default:
       break;
   }
+  item.selected = NO;
 
   [self moveIndicatorAtIndex:currentIndex];
 
@@ -291,6 +308,7 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 
   UIColor * menuColor = [self menuColorAtIndex:index];
 
+  PMKMenuItem * item = self.menuItems[index];
   switch (_menuStyle) {
     default:
     case PMKPageMenuControllerStylePlain: {
@@ -300,36 +318,37 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
       }
       break;
     case PMKPageMenuControllerStyleTab: {
-	UILabel * label = self.menuItems[index];
-	label.textColor = [UIColor whiteColor];
-	label.backgroundColor = menuColor;
+	item.titleColor = [UIColor whiteColor];
+	item.backgroundColor = menuColor;
 	self.bottomBorder.backgroundColor = menuColor.CGColor;
 	self.menuIndicator.backgroundColor = [UIColor clearColor];
       }
       break;
     case PMKPageMenuControllerStyleSmartTab: {
-	UILabel * label = self.menuItems[index];
-	CGRect frame = label.frame;
+	CGRect frame = item.menuFrame;
 	frame.origin.y = 0.0f;
 	frame.size.height = kMenuItemHeight;
-	label.frame = frame;
-	[self roundingCornersOfLabel:label];
+	item.menuFrame = frame;
 	self.menuIndicator.backgroundColor = menuColor;
       }
       break;
     case PMKPageMenuControllerStyleHackaTab: {
-	UILabel * label = self.menuItems[index];
-	label.textColor = [UIColor whiteColor];
-	label.backgroundColor = [self colorWithHex:kHackaHexColor];
-	CGRect frame = label.frame;
+	item.titleColor = [UIColor whiteColor];
+	item.backgroundColor = PMKColorWithHex(kHackaHexColor);
+	CGRect frame = item.menuFrame;
 	frame.origin.y = 0.0f;
 	frame.size.height = kMenuItemHeight;
-	label.frame = frame;
+	item.menuFrame = frame;
+	[item borderLayer].hidden = YES;
 	self.menuIndicator.backgroundColor = [UIColor clearColor];
-	CAShapeLayer * shapeLayer = [label.layer valueForKey:kBorderLayerKey];
-	shapeLayer.hidden = YES;
       }
       break;
+  }
+  item.selected = YES;
+
+  if ([_delegate respondsToSelector:@selector(pageMenuController:didSelectMenuItem:atMenuIndex:)]) {
+    [_delegate pageMenuController:self
+		didSelectMenuItem:item atMenuIndex:index];
   }
 }
 
@@ -350,52 +369,6 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
   else if (x > rightX) { x  = size.width - width; }
   else		       { x -= leftX; }
   [self.scrollView setContentOffset:CGPointMake(x, y) animated:YES];
-}
-
-#pragma mark - convenient method
-// 左上と右上の角を丸める
--(void)roundingCornersOfLabel:(UILabel *)label
-{
-  @autoreleasepool {
-    UIBezierPath * maskPath =
-	[UIBezierPath bezierPathWithRoundedRect:label.bounds
-		      byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight)
-		      cornerRadii:CGSizeMake(5.0f, 5.0f) ];
-    CAShapeLayer * maskLayer = [CAShapeLayer layer];
-    maskLayer.frame  = label.bounds;
-    maskLayer.path   = maskPath.CGPath;
-    label.layer.mask = maskLayer;
-  }
-}
-
-#pragma mark - convenient method
-// 左端と上と右端のみ枠線を付ける
--(void)addBordersOfLabel:(UILabel *)label
-{
-  @autoreleasepool {
-    CGFloat w = label.frame.size.width;
-    CGFloat h = label.frame.size.height;
-    CGFloat x = 0.0f;
-    CGFloat y = h;
-    UIBezierPath * bezierPath = [UIBezierPath new];
-    [bezierPath moveToPoint:CGPointMake(x, y)];    y = 0.0f;
-    [bezierPath addLineToPoint:CGPointMake(x, y)]; x = w;
-    [bezierPath addLineToPoint:CGPointMake(x, y)]; y = h;
-    [bezierPath addLineToPoint:CGPointMake(x, y)]; 
-    CAShapeLayer * shapeLayer = [CAShapeLayer new];
-    shapeLayer.frame = label.bounds;
-    shapeLayer.path = bezierPath.CGPath;
-    shapeLayer.fillColor = [UIColor clearColor].CGColor;
-    shapeLayer.strokeColor = [self colorWithHex:kHackaHexColor].CGColor;
-    shapeLayer.lineWidth = 1.0f;
-    /*
-     * XXX: Disable implicit animation for hidden of CAShapeLayer.
-     * http://stackoverflow.com/questions/5833488/how-to-disable-calayer-implicit-animations
-     */
-    shapeLayer.actions = @{ @"hidden" : [NSNull null] };
-    [label.layer addSublayer:shapeLayer];
-    [label.layer setValue:shapeLayer forKey:kBorderLayerKey];
-  }
 }
 
 /*****************************************************************************/
@@ -435,7 +408,6 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 	  label.textColor = menuColor;
 	  label.backgroundColor = [UIColor clearColor];
 	}
-	[self roundingCornersOfLabel:label];
 	break;
       case PMKPageMenuControllerStyleSmartTab:
 	label.textColor = [UIColor whiteColor];
@@ -446,10 +418,9 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 	  frame.size.height = kMenuItemHeight;
 	  label.frame = frame;
 	}
-	[self roundingCornersOfLabel:label];
 	break;
       case PMKPageMenuControllerStyleHackaTab:
-	menuColor = [self colorWithHex:kHackaHexColor];
+	menuColor = PMKColorWithHex(kHackaHexColor);
 	if (i == _currentIndex) {
 	  label.textColor = [UIColor whiteColor];
 	  label.backgroundColor = menuColor;
@@ -462,7 +433,6 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 	  label.textColor = menuColor;
 	  label.backgroundColor = [UIColor clearColor];
 	}
-	[self addBordersOfLabel:label];
 	break;
     }
     label.userInteractionEnabled = YES;
@@ -474,7 +444,11 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
 		  initWithTarget:self
 		  action:@selector(handleSingleTap:)];
     [label addGestureRecognizer:tapGesture];
-    [self.menuItems addObject:label];
+
+    PMKMenuItem * item =
+	[[PMKMenuItem alloc] initWithLabel:label style:_menuStyle];
+    item.selected = (i == 0);
+    [self.menuItems addObject:item];
   }
 
   CGFloat  width = self.scrollView.bounds.size.width;
@@ -547,7 +521,7 @@ static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
       w = self.scrollView.contentSize.width;
       break;
     case PMKPageMenuControllerStyleHackaTab: {
-	menuColor = [self colorWithHex:kHackaHexColor];
+	menuColor = PMKColorWithHex(kHackaHexColor);
 	CALayer * layer = [CALayer new];
 	layer.frame = CGRectMake(0.0f, height - 2.0f, width, 2.0f); 
 	layer.backgroundColor = menuColor.CGColor;
@@ -671,16 +645,198 @@ orientation
   return self.childControllers[index];
 }
 
-/*****************************************************************************/
+@end
 
-#pragma mark - convenient method
-// http://stackoverflow.com/questions/1560081/how-can-i-create-a-uicolor-from-a-hex-string
--(UIColor *)colorWithHex:(int)hex
+/******************************************************************************
+ *
+ * PMKMenuItem Class
+ *
+ *****************************************************************************/
+static NSString * const	kBorderLayerKey = @"kBorderLayerKey";
+static NSString * const	kBadgeLayerKey  = @"kBadgeLayerKey";
+
+@implementation PMKMenuItem
+
+-(instancetype)initWithLabel:(UILabel *)label
+		       style:(PMKPageMenuControllerStyle)style
 {
-  return [UIColor colorWithRed:((float)((hex & 0xff0000) >> 16)) / 255.0f
-			 green:((float)((hex & 0xff00)   >>  8)) / 255.0f
-			  blue:((float)( hex & 0xff)) / 255.0f
-			 alpha:1.0f];
+  self = [super init];
+  if (self) {
+	  self.label = label;
+	      _title = label.text;
+		_tag = 0;
+	 _badgeValue = nil;
+	    _enabled = YES;
+	   _selected = NO;
+	 _titleColor = label.textColor;
+    _backgroundColor = label.backgroundColor;
+	  _menuFrame = label.frame;
+
+    switch (style) {
+      case PMKPageMenuControllerStylePlain:
+	break;
+      case PMKPageMenuControllerStyleTab:
+	[self roundingCornersOfLabel:label];
+	break;
+      case PMKPageMenuControllerStyleSmartTab:
+	[self roundingCornersOfLabel:label];
+	break;
+      case PMKPageMenuControllerStyleHackaTab:
+	[self addBordersOfLabel:label];
+	break;
+    }
+    _menuStyle = style;
+  }
+  return self;
+}
+
+#pragma mark - override setter
+-(void)setTitle:(NSString *)title
+{
+  if (![_title isEqualToString:title]) {
+    _title = title;
+
+    self.label.text = title;
+  }
+}
+
+#pragma mark - override setter
+-(void)setTitleColor:(UIColor *)titleColor
+{
+  if (titleColor != nil) {
+    _titleColor = titleColor;
+
+    self.label.textColor = titleColor;
+  }
+}
+
+#pragma mark - override setter
+-(void)setBackgroundColor:(UIColor *)backgroundColor
+{
+  if (backgroundColor != nil) {
+    _backgroundColor = backgroundColor;
+
+    self.label.backgroundColor = backgroundColor;
+  }
+}
+
+#pragma mark - override setter
+-(void)setEnabled:(BOOL)enabled
+{
+  _enabled = enabled;
+
+  self.label.userInteractionEnabled = enabled;
+  if (enabled) {
+    self.label.alpha = 1.0f;
+  }
+  else {
+    self.label.alpha = 0.5f;
+  }
+}
+
+#pragma mark - override setter
+-(void)setSelected:(BOOL)selected
+{
+  _selected = selected;
+
+  CATextLayer * textLayer = [self.label.layer valueForKey:kBadgeLayerKey];
+  if (textLayer) {
+    textLayer.hidden = (_badgeValue == nil || selected);
+  }
+}
+
+#pragma mark - override setter
+-(void)setMenuFrame:(CGRect)menuFrame
+{
+  _menuFrame = menuFrame;
+
+  self.label.frame = menuFrame;
+
+  if (_menuStyle == PMKPageMenuControllerStyleSmartTab) {
+    [self roundingCornersOfLabel:self.label];
+  }
+}
+
+#pragma mark - override setter
+-(void)setBadgeValue:(NSString *)badgeValue
+{
+  _badgeValue = badgeValue;
+
+  if (_menuStyle == PMKPageMenuControllerStyleHackaTab) {
+    CATextLayer * textLayer = [self.label.layer valueForKey:kBadgeLayerKey];
+    if (!textLayer) {
+      CGFloat w = 16.0f;
+      CGFloat h = w;
+      CGFloat x = self.label.frame.size.width - w - 4.0f;
+      CGFloat y = -kSmartTabMargin;
+      textLayer = [CATextLayer new];
+      textLayer.frame = CGRectMake(x, y, w, h);
+      textLayer.fontSize = 12.0f;
+      textLayer.foregroundColor = [UIColor whiteColor].CGColor;
+      textLayer.backgroundColor = [UIColor redColor].CGColor;
+      textLayer.cornerRadius = w * 0.5f;
+      textLayer.masksToBounds = YES;
+      textLayer.alignmentMode = kCAAlignmentCenter;
+      textLayer.contentsScale = [UIScreen mainScreen].scale;
+      textLayer.actions = @{ @"hidden" : [NSNull null] };
+      [self.label.layer addSublayer:textLayer];
+      [self.label.layer setValue:textLayer forKey:kBadgeLayerKey];
+    }
+    textLayer.string = badgeValue;
+    textLayer.hidden = (badgeValue == nil || _selected);
+  }
+}
+
+#pragma mark - public method
+-(CAShapeLayer *)borderLayer
+{
+  return [self.label.layer valueForKey:kBorderLayerKey];
+}
+
+#pragma mark - private method
+// 左上と右上の角を丸める
+-(void)roundingCornersOfLabel:(UILabel *)label
+{
+  @autoreleasepool {
+    UIBezierPath * maskPath =
+	[UIBezierPath bezierPathWithRoundedRect:label.bounds
+		      byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight)
+		      cornerRadii:CGSizeMake(5.0f, 5.0f) ];
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.frame  = label.bounds;
+    maskLayer.path   = maskPath.CGPath;
+    label.layer.mask = maskLayer;
+  }
+}
+
+#pragma mark - private method
+// 左端と上と右端のみ枠線を付ける
+-(void)addBordersOfLabel:(UILabel *)label
+{
+  @autoreleasepool {
+    CGFloat w = label.frame.size.width;
+    CGFloat h = label.frame.size.height;
+    CGFloat x = 0.0f;
+    CGFloat y = h;
+    UIBezierPath * bezierPath = [UIBezierPath new];
+    [bezierPath moveToPoint:CGPointMake(x, y)];    y = 0.0f;
+    [bezierPath addLineToPoint:CGPointMake(x, y)]; x = w;
+    [bezierPath addLineToPoint:CGPointMake(x, y)]; y = h;
+    [bezierPath addLineToPoint:CGPointMake(x, y)];
+    CAShapeLayer * shapeLayer = [CAShapeLayer new];
+    shapeLayer.frame = label.bounds;
+    shapeLayer.path = bezierPath.CGPath;
+    shapeLayer.fillColor = [UIColor clearColor].CGColor;
+    shapeLayer.strokeColor = PMKColorWithHex(kHackaHexColor).CGColor;
+    shapeLayer.lineWidth = 1.0f;
+    /*
+     * XXX: Disable implicit animation for hidden of CAShapeLayer.
+     * http://stackoverflow.com/questions/5833488/how-to-disable-calayer-implicit-animations
+     */
+    shapeLayer.actions = @{ @"hidden" : [NSNull null] };
+    [label.layer addSublayer:shapeLayer];
+    [label.layer setValue:shapeLayer forKey:kBorderLayerKey];
+  }
 }
 
 @end
