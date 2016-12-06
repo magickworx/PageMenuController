@@ -73,6 +73,9 @@ typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
 			 menuStyle:(PMKPageMenuControllerStyle)menuStyle
 		      topBarHeight:(CGFloat)topBarHeight;
 
+-(void)setMenuSeparatorColor:(UIColor *)color;
+-(void)setMenuIndicatorColor:(UIColor *)color;
+
 @end
 
 @protocol PMKPageMenuControllerDelegate <NSObject>
@@ -98,6 +101,7 @@ typedef NS_ENUM(NSInteger, PMKPageMenuControllerStyle) {
 @property (nonatomic,copy) NSString *	badgeValue; // default: nil
 @property (nonatomic,strong) UIColor *	titleColor; // set automatically
 @property (nonatomic,strong) UIColor *	backgroundColor; // set automatically
+@property (nonatomic,strong) UIColor *	borderColor; // set automatically
 @property (nonatomic,getter=isEnabled) BOOL	enabled; // default: YES
 @property (nonatomic,readonly,getter=isSelected) BOOL	selected; // default: NO
 @property (nonatomic,readonly) PMKPageMenuControllerStyle	menuStyle;

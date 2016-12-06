@@ -80,7 +80,7 @@ PMKColorWithHex(int hex)
 @property (nonatomic,strong,readwrite) NSArray *	menuColors;
 @property (nonatomic,assign) CGFloat			topBarHeight;
 @property (nonatomic,strong) UIScrollView *		scrollView;
-@property (nonatomic,strong) CALayer *			bottomBorder;
+@property (nonatomic,strong) CALayer *			menuSeparator;
 @property (nonatomic,strong) UIView *			menuIndicator;
 @property (nonatomic,strong) NSMutableArray *		menuItems;
 @property (nonatomic,assign) CGFloat			itemMargin;
@@ -186,6 +186,7 @@ PMKColorWithHex(int hex)
   self.scrollView = scrollView;
 
   [self prepareForMenuItems];
+  [self prepareForMenuSeparator];
   [self prepareForMenuIndicator];
 }
 
@@ -320,7 +321,7 @@ PMKColorWithHex(int hex)
     case PMKPageMenuControllerStyleTab: {
 	item.titleColor = [UIColor whiteColor];
 	item.backgroundColor = menuColor;
-	self.bottomBorder.backgroundColor = menuColor.CGColor;
+	self.menuSeparator.backgroundColor = menuColor.CGColor;
 	self.menuIndicator.backgroundColor = [UIColor clearColor];
       }
       break;
@@ -486,11 +487,45 @@ PMKColorWithHex(int hex)
 }
 
 #pragma mark - private method
--(void)prepareForMenuIndicator
+-(void)prepareForMenuSeparator
 {
   CGFloat  width = self.scrollView.contentSize.width;
   CGFloat height = self.scrollView.frame.size.height;
 
+  CGFloat x = 0.0f;
+  CGFloat y = height;
+  CGFloat w = width;
+  CGFloat h = 0.0f;
+
+  CALayer * layer = [CALayer new];
+
+  UIColor * menuColor = self.menuColors[0];
+
+  switch (_menuStyle) {
+    case PMKPageMenuControllerStylePlain:
+      h = 1.0f; menuColor = [UIColor orangeColor];
+      break;
+    case PMKPageMenuControllerStyleTab:
+      h = 2.0f;
+      break;
+    case PMKPageMenuControllerStyleHackaTab:
+      h = 2.0f; menuColor = PMKColorWithHex(kHackaHexColor);
+      break;
+    case PMKPageMenuControllerStyleSmartTab:
+    default:
+      break;
+  }
+  y = height - h;
+  layer.frame = CGRectMake(x, y, w, h);
+  layer.actions = @{ @"backgroundColor" : [NSNull null] };
+  layer.backgroundColor = menuColor.CGColor;
+  [self.scrollView.layer addSublayer:layer];
+  self.menuSeparator = layer;
+}
+
+#pragma mark - private method
+-(void)prepareForMenuIndicator
+{
   CGFloat x = 0.0f;
   CGFloat y = self.scrollView.frame.size.height - kIndicatorHeight;
   CGFloat h = kIndicatorHeight;
@@ -499,42 +534,41 @@ PMKColorWithHex(int hex)
   UIColor * menuColor = self.menuColors[0];
   switch (_menuStyle) {
     default:
-    case PMKPageMenuControllerStylePlain: {
-	menuColor = [UIColor orangeColor];
-	CALayer * layer = [CALayer new];
-	layer.frame = CGRectMake(0.0f, height - 1.0f, width, 1.0f); 
-	layer.backgroundColor = menuColor.CGColor;
-	[self.scrollView.layer addSublayer:layer];
-	self.bottomBorder = layer;
-      }
+    case PMKPageMenuControllerStylePlain:
+      menuColor = [UIColor orangeColor];
       break;
-    case PMKPageMenuControllerStyleTab: {
-	CALayer * layer = [CALayer new];
-	layer.frame = CGRectMake(0.0f, height - 2.0f, width, 2.0f); 
-	layer.backgroundColor = menuColor.CGColor;
-	layer.actions = @{ @"backgroundColor" : [NSNull null] };
-	[self.scrollView.layer addSublayer:layer];
-	self.bottomBorder = layer;
-      }
-      // XXX: FALL THROUGH
+    case PMKPageMenuControllerStyleTab:
     case PMKPageMenuControllerStyleSmartTab:
       w = self.scrollView.contentSize.width;
       break;
-    case PMKPageMenuControllerStyleHackaTab: {
-	menuColor = PMKColorWithHex(kHackaHexColor);
-	CALayer * layer = [CALayer new];
-	layer.frame = CGRectMake(0.0f, height - 2.0f, width, 2.0f); 
-	layer.backgroundColor = menuColor.CGColor;
-	[self.scrollView.layer addSublayer:layer];
-	self.bottomBorder = layer;
-      }
+    case PMKPageMenuControllerStyleHackaTab:
+      menuColor = PMKColorWithHex(kHackaHexColor);
       break;
   }
+
   UIView * menuIndicator;
   menuIndicator = [[UIView alloc] initWithFrame:CGRectMake(x, y, w, h)];
   menuIndicator.backgroundColor = menuColor;
   [self.scrollView addSubview:menuIndicator];
   self.menuIndicator = menuIndicator;
+}
+
+/*****************************************************************************/
+
+#pragma mark - public method
+-(void)setMenuSeparatorColor:(UIColor *)color
+{
+  if (color) {
+    self.menuSeparator.backgroundColor = color.CGColor;
+  }
+}
+
+#pragma mark - public method
+-(void)setMenuIndicatorColor:(UIColor *)color
+{
+  if (color) {
+    self.menuIndicator.backgroundColor = color;
+  }
 }
 
 /*****************************************************************************/
@@ -718,6 +752,18 @@ static NSString * const	kBadgeLayerKey  = @"kBadgeLayerKey";
 
     self.label.backgroundColor = backgroundColor;
   }
+}
+
+#pragma mark - override setter
+-(void)setBorderColor:(UIColor *)borderColor
+{
+  if (_menuStyle == PMKPageMenuControllerStyleHackaTab) {
+    if (borderColor != nil) {
+
+      [self borderLayer].strokeColor = borderColor.CGColor;
+    }
+  }
+  _borderColor = borderColor;
 }
 
 #pragma mark - override setter
